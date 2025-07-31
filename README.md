@@ -41,3 +41,11 @@ This workspace is structured for FPGA development targeting the Arty-100T board 
 - The Makefile and TCL scripts support modular, reproducible builds for larger projects.
 
 ---
+
+## Contribution
+
+Contributions are welcome! Please open an issue or submit a pull request if you have suggestions, bug fixes, or improvements.
+
+## Creator
+
+Created by: Tuan-Kiet Dang
