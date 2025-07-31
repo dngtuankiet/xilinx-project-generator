@@ -4,8 +4,8 @@
 #   make clean     # Remove build directory
 
 VIVADO ?= vivado
-PROJ_NAME := xilinx_project_generator
-TOP_MODULE := ring_oscillator
+PROJ_NAME := basic_trng_prj
+TOP_MODULE := basic_trng
 BOARD := arty_a7_100
 SRC_DIR := src
 BUILD_DIR := build

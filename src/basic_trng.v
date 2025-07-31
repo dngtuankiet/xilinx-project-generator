@@ -10,15 +10,15 @@ parameter integer FAST_RO_LENGTH = 5;
 parameter integer SLOW_RO_LENGTH = 20;
 
 // Fast ring oscillator
-wire fast_osc;
-ring_oscillator #(.FAST_RO_LENGTH) fast_ring_osc (
+(*dont_touch = "true"*) wire fast_osc;
+ring_oscillator #(.LENGTH(FAST_RO_LENGTH)) fast_ring_osc (
     .iEn(iEntropyEn),
     .oOsc(fast_osc)
 );
 
 // Slow ring oscillator
-wire slow_osc;
-ring_oscillator #(.SLOW_RO_LENGTH) slow_ring_osc (
+(*dont_touch = "true"*) wire slow_osc;
+ring_oscillator #(.LENGTH(SLOW_RO_LENGTH)) slow_ring_osc (
     .iEn(iEn),
     .oOsc(slow_osc)
 );
