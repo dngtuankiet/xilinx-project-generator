@@ -1,3 +1,4 @@
+`timescale 1ns / 1ps
 (*dont_touch = "true"*)
 module ring_oscillator #(
     parameter integer LENGTH = 5

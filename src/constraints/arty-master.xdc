@@ -8,9 +8,9 @@ set_property CONFIG_VOLTAGE 3.3 [current_design]
 
 ## Clock signal
 
-set_property -dict { PACKAGE_PIN E3    IOSTANDARD LVCMOS33 } [get_ports { CLK100MHZ }]; #IO_L12P_T1_MRCC_35 Sch=gclk[100]
-create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports {CLK100MHZ}];
-create_clock -add -name JTCK        -period 100   -waveform {0 50} [get_ports {jd_2}];
+set_property -dict { PACKAGE_PIN E3    IOSTANDARD LVCMOS33 } [get_ports { iClk_100MHz }]; #IO_L12P_T1_MRCC_35 Sch=gclk[100]
+create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports {iClk_100MHz}];
+# create_clock -add -name JTCK        -period 100   -waveform {0 50} [get_ports {jd_2}];
 
 ##Switches
 
@@ -36,10 +36,10 @@ set_property -dict { PACKAGE_PIN C10   IOSTANDARD LVCMOS33 } [get_ports { iEn }]
 
 ##LEDs
 
-# set_property -dict { PACKAGE_PIN H5    IOSTANDARD LVCMOS33 } [get_ports { led_0 }]; #IO_L24N_T3_35 Sch=led[4]
-# set_property -dict { PACKAGE_PIN J5    IOSTANDARD LVCMOS33 } [get_ports { led_1 }]; #IO_25_35 Sch=led[5]
-# set_property -dict { PACKAGE_PIN T9    IOSTANDARD LVCMOS33 } [get_ports { led_2 }]; #IO_L24P_T3_A01_D17_14 Sch=led[6]
-# set_property -dict { PACKAGE_PIN T10   IOSTANDARD LVCMOS33 } [get_ports { led_3 }]; #IO_L24N_T3_A00_D16_14 Sch=led[7]
+set_property -dict { PACKAGE_PIN H5    IOSTANDARD LVCMOS33 } [get_ports { led[0] }]; #IO_L24N_T3_35 Sch=led[4]
+set_property -dict { PACKAGE_PIN J5    IOSTANDARD LVCMOS33 } [get_ports { led[1] }]; #IO_25_35 Sch=led[5]
+set_property -dict { PACKAGE_PIN T9    IOSTANDARD LVCMOS33 } [get_ports { led[2] }]; #IO_L24P_T3_A01_D17_14 Sch=led[6]
+set_property -dict { PACKAGE_PIN T10   IOSTANDARD LVCMOS33 } [get_ports { led[3] }]; #IO_L24N_T3_A00_D16_14 Sch=led[7]
 
 ##Buttons
 
@@ -50,7 +50,7 @@ set_property -dict { PACKAGE_PIN C10   IOSTANDARD LVCMOS33 } [get_ports { iEn }]
 
 ##Pmod Header JA
 
-set_property -dict { PACKAGE_PIN G13   IOSTANDARD LVCMOS33 } [get_ports { oRandomBit }]; #IO_0_15 Sch=ja[1]
+# set_property -dict { PACKAGE_PIN G13   IOSTANDARD LVCMOS33 } [get_ports { oRandomBit }]; #IO_0_15 Sch=ja[1]
 # set_property -dict { PACKAGE_PIN B11   IOSTANDARD LVCMOS33 } [get_ports { ja_1 }]; #IO_L4P_T0_15 Sch=ja[2]
 # set_property -dict { PACKAGE_PIN A11   IOSTANDARD LVCMOS33 } [get_ports { ja_2 }]; #IO_L4N_T0_15 Sch=ja[3]
 # set_property -dict { PACKAGE_PIN D12   IOSTANDARD LVCMOS33 } [get_ports { ja_3 }]; #IO_L6P_T0_15 Sch=ja[4]
@@ -94,8 +94,8 @@ set_property -dict { PACKAGE_PIN G13   IOSTANDARD LVCMOS33 } [get_ports { oRando
 
 ##USB-UART Interface (FTDI FT2232H)
 
-# set_property -dict { PACKAGE_PIN D10   IOSTANDARD LVCMOS33  } [get_ports { uart_rxd_out }]; #IO_L19N_T3_VREF_16 Sch=uart_rxd_out
-# set_property -dict { PACKAGE_PIN A9    IOSTANDARD LVCMOS33  } [get_ports { uart_txd_in }]; #IO_L14N_T2_SRCC_16 Sch=uart_txd_in
+set_property -dict { PACKAGE_PIN D10   IOSTANDARD LVCMOS33  } [get_ports { TX_line }]; #IO_L19N_T3_VREF_16 Sch=uart_rxd_out
+# set_property -dict { PACKAGE_PIN A9    IOSTANDARD LVCMOS33  } [get_ports { TX_line }]; #IO_L14N_T2_SRCC_16 Sch=uart_txd_in
 
 
 ##ChipKit Single Ended Analog Inputs

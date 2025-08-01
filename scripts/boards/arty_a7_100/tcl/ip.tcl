@@ -1,5 +1,43 @@
 # # See LICENSE for license details.
 
+# Create clock wizard IP for generating 10MHz clock from 100MHz input
+# create_ip -vendor xilinx.com -library ip -name clk_wiz -module_name clk_wiz_0 -dir $ip_dir -force
+# set_property -dict [list \
+#         CONFIG.PRIMITIVE {PLL} \
+#         CONFIG.PRIM_SOURCE {Single_ended_clock_capable_pin} \
+#         CONFIG.PRIM_IN_FREQ {100.000} \
+#         CONFIG.CLKOUT1_USED {true} \
+#         CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {10.000} \
+#         CONFIG.RESET_TYPE {ACTIVE_HIGH} \
+#         CONFIG.RESET_PORT {reset} \
+#         CONFIG.CLKIN1_JITTER_PS {100.0} \
+#         CONFIG.MMCM_DIVCLK_DIVIDE {1} \
+#         CONFIG.MMCM_CLKFBOUT_MULT_F {10.000} \
+#         CONFIG.MMCM_CLKIN1_PERIOD {10.000} \
+#         CONFIG.MMCM_CLKOUT0_DIVIDE_F {100.000} \
+#         CONFIG.CLKOUT1_JITTER {151.636} \
+#         CONFIG.CLKOUT1_PHASE_ERROR {98.575} \
+#         ] [get_ips clk_wiz_0]
+
+# # Create clock wizard IP for generating 1MHz clock from 100MHz input
+# create_ip -vendor xilinx.com -library ip -name clk_wiz -module_name clk_wiz_0 -dir $ip_dir -force
+# set_property -dict [list \
+#         CONFIG.PRIMITIVE {PLL} \
+#         CONFIG.PRIM_SOURCE {Single_ended_clock_capable_pin} \
+#         CONFIG.PRIM_IN_FREQ {100.000} \
+#         CONFIG.CLKOUT1_USED {true} \
+#         CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {10.000} \
+#         CONFIG.RESET_TYPE {ACTIVE_HIGH} \
+#         CONFIG.RESET_PORT {reset} \
+#         CONFIG.CLKIN1_JITTER_PS {100.0} \
+#         CONFIG.MMCM_DIVCLK_DIVIDE {1} \
+#         CONFIG.MMCM_CLKFBOUT_MULT_F {10.000} \
+#         CONFIG.MMCM_CLKIN1_PERIOD {10.000} \
+#         CONFIG.MMCM_CLKOUT0_DIVIDE_F {1000.000} \
+#         CONFIG.CLKOUT1_JITTER {181.828} \
+#         CONFIG.CLKOUT1_PHASE_ERROR {104.359} \
+#         ] [get_ips clk_wiz_0]
+
 # create_ip -vendor xilinx.com -library ip -name clk_wiz -module_name mmcm -dir $ip_dir -force
 # set_property -dict [list \
 #         CONFIG.PRIMITIVE {MMCM} \
