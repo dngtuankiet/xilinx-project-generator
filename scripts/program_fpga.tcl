@@ -53,10 +53,6 @@ puts "Starting programming process..."
 program_hw_devices $hw_device
 
 puts "Programming command completed successfully!"
-puts "Please verify that your design is working by checking:"
-puts "  - LEDs on the FPGA board"
-puts "  - Serial output from your design"
-puts "  - Any other expected behavior"
 
 # Close hardware manager
 close_hw_target

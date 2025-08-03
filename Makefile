@@ -32,7 +32,7 @@ clean:
 program-fpga: $(BIT_FILE)
 	@echo "Programming FPGA with $(BIT_FILE) (simple mode)..."
 	@echo "Make sure your FPGA board is connected and powered on."
-	$(VIVADO) -nojournal -mode batch -source scripts/program_fpga_simple.tcl -tclargs $(BIT_FILE)
+	$(VIVADO) -nojournal -mode batch -source scripts/program_fpga.tcl -tclargs $(BIT_FILE)
 
 program-fpga-gui: $(BIT_FILE)
 	@echo "Opening Vivado Hardware Manager GUI for manual programming..."
