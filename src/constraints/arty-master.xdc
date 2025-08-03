@@ -15,7 +15,7 @@ create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports {iC
 ##Switches
 
 set_property -dict { PACKAGE_PIN A8    IOSTANDARD LVCMOS33 } [get_ports { iRst }]; #IO_L12N_T1_MRCC_16 Sch=sw[0]
-set_property -dict { PACKAGE_PIN C11   IOSTANDARD LVCMOS33 } [get_ports { iEntropyEn }]; #IO_L13P_T2_MRCC_16 Sch=sw[1]
+set_property -dict { PACKAGE_PIN C11   IOSTANDARD LVCMOS33 } [get_ports { iEnOsc }]; #IO_L13P_T2_MRCC_16 Sch=sw[1]
 set_property -dict { PACKAGE_PIN C10   IOSTANDARD LVCMOS33 } [get_ports { iEn }]; #IO_L13N_T2_MRCC_16 Sch=sw[2]
 # set_property -dict { PACKAGE_PIN A10   IOSTANDARD LVCMOS33 } [get_ports { sw_3 }]; #IO_L14P_T2_SRCC_16 Sch=sw[3]
 

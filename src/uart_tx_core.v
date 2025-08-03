@@ -1,4 +1,3 @@
-`timescale 1ns / 1ps
 module uart_tx_core #(
     parameter CLK_FREQ = 50000000,
     parameter BAUD_RATE = 115200

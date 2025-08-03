@@ -1,8 +1,7 @@
-`timescale 1ns / 1ps
 module top(
     input  iClk_100MHz,
     input  iRst,
-    input  iEntropyEn,
+    input  iEnOsc,
     input  iEn,
     output TX_line,
     output [3:0] led
@@ -18,9 +17,9 @@ module top(
     // );
 
     // Slow ring oscillator
-    parameter integer SLOW_RO_LENGTH = 91;
+    parameter integer SLOW_RO_LENGTH = 501;
     ring_oscillator #(.LENGTH(SLOW_RO_LENGTH)) slow_ring_osc (
-        .iEn(iEn),
+        .iEn(iEnOsc),
         .oOsc(w_sample_clk)
     );
 
@@ -31,7 +30,7 @@ module top(
     basic_trng basic_trng_inst (
         .iClk(w_sample_clk),
         .iRst(iRst),
-        .iEntropyEn(iEntropyEn),
+        .iEntropyEn(iEnOsc),
         .iEn(iEn),
         .oRandomBit(random_bit)
     );
@@ -41,52 +40,64 @@ module top(
     //==========================================================================
     
     localparam BATCH_SIZE = 32'd1000;
+    localparam MEM_ADDR_WIDTH = $clog2(BATCH_SIZE);
     
+    // Byte collector signals
     wire        collector_done;
-    wire [31:0] collector_bytes_collected;
-    wire [7:0]  memory_read_data;
-    reg         memory_read_enable;
-    reg  [31:0] memory_read_addr;
+    wire        collector_mem_we;
+    wire        collector_mem_oe;
+    wire [MEM_ADDR_WIDTH-1:0] collector_mem_addr;
+    wire [7:0]  collector_mem_din;
     
-    collector #(
-        .BATCH_SIZE(BATCH_SIZE)
+    // UART transmit signals
+    reg         uart_start;
+    wire        uart_done;
+    wire        uart_mem_we;
+    wire        uart_mem_oe;
+    wire [MEM_ADDR_WIDTH-1:0] uart_mem_addr;
+    wire [7:0]  uart_mem_dout;
+    
+    // Dual-port memory instance
+    dual_port_memory #(
+        .BATCH_SIZE(BATCH_SIZE),
+        .MEM_ADDR_WIDTH(MEM_ADDR_WIDTH),
+        .DATA_WIDTH(8)
+    ) memory_inst (
+        // Port A - Write port (for byte_collector)
+        .clka(w_sample_clk),
+        .wea(collector_mem_we),
+        .addra(collector_mem_addr),
+        .dina(collector_mem_din),
+        
+        // Port B - Read port (for uart_transmit)
+        .clkb(iClk_100MHz),
+        .enb(uart_mem_oe),
+        .addrb(uart_mem_addr),
+        .doutb(uart_mem_dout)
+    );
+    
+    // Byte collector instance
+    byte_collector #(
+        .BATCH_SIZE(BATCH_SIZE),
+        .MEM_ADDR_WIDTH(MEM_ADDR_WIDTH)
     ) collector_inst (
-        .clk_collect(w_sample_clk),      // Collection clock
+        .clk(w_sample_clk),
         .rst(iRst),
         .start(iEn),
-        .random_bit(random_bit),
-        .done(collector_done),
-        .bytes_collected(collector_bytes_collected),
+        .bit_in(random_bit),
         
-        .clk_uart(iClk_100MHz),          // UART read clock
-        .read_enable(memory_read_enable),
-        .read_addr(memory_read_addr),
-        .read_data(memory_read_data)
+        .mem_we(collector_mem_we),
+        .mem_oe(collector_mem_oe),
+        .mem_addr(collector_mem_addr),
+        .mem_din(collector_mem_din),
+        .done(collector_done)
     );
 
     //==========================================================================
     // UART Transmitter (runs on stable 100MHz clock)
     //==========================================================================
-    reg         uart_tx_start;
-    wire        uart_tx_busy;
     
-    uart_tx_core #(
-        .CLK_FREQ(100000000),  // 100MHz clock frequency
-        .BAUD_RATE(115200)
-    ) uart_tx (
-        .clk(iClk_100MHz),     // Use stable 100MHz clock
-        .rst(iRst),
-        .tx_start(uart_tx_start),
-        .tx_data(memory_read_data), // Read directly from dual-port memory
-        .tx_line(TX_line),
-        .tx_busy(uart_tx_busy)
-    );
-
-    //==========================================================================
-    // UART Controller (runs on 100MHz clock)
-    //==========================================================================
-    
-    // Synchronize collector_done to 100MHz domain
+    // Synchronize collector_done to 100MHz domain for UART trigger
     reg [2:0] done_sync;
     reg       prev_done_sync;
     wire      done_edge;
@@ -95,79 +106,37 @@ module top(
         if (iRst) begin
             done_sync <= 3'b0;
             prev_done_sync <= 1'b0;
+            uart_start <= 1'b0;
         end else begin
             done_sync <= {done_sync[1:0], collector_done};
             prev_done_sync <= done_sync[2];
+            
+            // Generate start pulse for UART when collection is done
+            uart_start <= done_sync[2] && !prev_done_sync;
         end
     end
     
     assign done_edge = done_sync[2] && !prev_done_sync;
     
-    // UART transmission FSM
-    localparam UART_IDLE = 2'b00,
-               UART_READ = 2'b01,
-               UART_SEND = 2'b10,
-               UART_WAIT = 2'b11;
-    
-    reg [1:0]  uart_state;
-    reg [31:0] tx_addr;
-    reg [31:0] bytes_to_send;
-    
-    always @(posedge iClk_100MHz) begin
-        if (iRst) begin
-            uart_state       <= UART_IDLE;
-            uart_tx_start    <= 1'b0;
-            memory_read_enable <= 1'b0;
-            memory_read_addr <= 32'b0;
-            tx_addr          <= 32'b0;
-            bytes_to_send    <= 32'b0;
-        end else begin
-            uart_tx_start    <= 1'b0;
-            memory_read_enable <= 1'b0;
-            
-            case (uart_state)
-                UART_IDLE: begin
-                    tx_addr <= 32'b0;
-                    
-                    // Start transmission when collection is done
-                    if (done_edge) begin
-                        bytes_to_send <= BATCH_SIZE;
-                        uart_state    <= UART_READ;
-                    end
-                end
-                
-                UART_READ: begin
-                    // Read from memory
-                    memory_read_addr   <= tx_addr;
-                    memory_read_enable <= 1'b1;
-                    uart_state         <= UART_SEND;
-                end
-                
-                UART_SEND: begin
-                    // Start UART transmission (data is already available)
-                    uart_tx_start <= 1'b1;
-                    uart_state    <= UART_WAIT;
-                end
-                
-                UART_WAIT: begin
-                    // Wait for UART transmission to complete
-                    if (!uart_tx_busy) begin
-                        tx_addr <= tx_addr + 1;
-                        
-                        if (tx_addr >= bytes_to_send - 1) begin
-                            uart_state <= UART_IDLE; // All bytes sent
-                        end else begin
-                            uart_state <= UART_READ; // Send next byte
-                        end
-                    end
-                end
-                
-                default: begin
-                    uart_state <= UART_IDLE;
-                end
-            endcase
-        end
-    end
+    // UART transmit instance
+    uart_transmit #(
+        .CLK_FREQ(100000000),  // 100MHz clock frequency
+        .BAUD_RATE(115200),
+        .BATCH_SIZE(BATCH_SIZE),
+        .MEM_ADDR_WIDTH(MEM_ADDR_WIDTH)
+    ) uart_inst (
+        .clk(iClk_100MHz),
+        .rst(iRst),
+        .start(uart_start),
+        
+        .mem_addr(uart_mem_addr),
+        .mem_dout(uart_mem_dout),
+        .mem_we(uart_mem_we),
+        .mem_oe(uart_mem_oe),
+        
+        .uart_tx(TX_line),
+        .tx_done(uart_done)
+    );
 
     //==========================================================================
     // Debug LEDs
@@ -178,53 +147,25 @@ module top(
     // LED[2]: Batch collection complete
     // LED[3]: Clock heartbeat (shows ring oscillator is running)
     
-    // Track UART transmission completion
-    reg uart_tx_finished;
-    
-    always @(posedge iClk_100MHz) begin
-        if (iRst) begin
-            uart_tx_finished <= 1'b0;
-        end else begin
-            // Set when UART finishes sending all bytes
-            if (uart_state == UART_WAIT && !uart_tx_busy && tx_addr >= bytes_to_send - 1) begin
-                uart_tx_finished <= 1'b1;
-            end
-            // Clear when new collection starts
-            if (done_edge) begin
-                uart_tx_finished <= 1'b0;
-            end
-        end
-    end
-    
-    // Synchronize UART busy to sample clock domain for LED consistency
-    reg [2:0] uart_busy_sync;
-    always @(posedge w_sample_clk) begin
-        if (iRst) begin
-            uart_busy_sync <= 3'b0;
-        end else begin
-            uart_busy_sync <= {uart_busy_sync[1:0], uart_tx_busy};
-        end
-    end
-    
-    assign led[0] = uart_busy_sync[2] || (uart_state != UART_IDLE);
-    assign led[1] = uart_tx_finished;  // LED on when UART transmission is finished
-    assign led[2] = collector_done;
+    assign led[0] = !uart_done && uart_start;  // UART active (between start and done)
+    assign led[1] = uart_done;                 // UART transmission finished
+    assign led[2] = collector_done;            // Collection complete
 
     // Clock heartbeat generator - shows ring oscillator activity
-    reg [23:0] blink_counter = 24'b0;
+    reg [31:0] blink_counter = 32'b0;
     reg        blink = 1'b0;
 
     always @(posedge w_sample_clk) begin
         if (iRst) begin
-            blink_counter <= 24'b0;
+            blink_counter <= 32'b0;
             blink         <= 1'b0;
         end else begin
             blink_counter <= blink_counter + 1;
             // Adjust counter based on ring oscillator frequency
             // This will blink at different rates depending on RO frequency
-            if (blink_counter == 24'd50000) begin // Approximate blink rate
+            if (blink_counter == 32'd500000) begin // Approximate blink rate
                 blink         <= ~blink;
-                blink_counter <= 24'b0;
+                blink_counter <= 32'b0;
             end
         end
     end

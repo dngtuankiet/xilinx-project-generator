@@ -30,22 +30,13 @@ clean:
 	rm -rf $(BUILD_DIR)
 
 program-fpga: $(BIT_FILE)
-	@echo "Programming FPGA with $(BIT_FILE)..."
-	@echo "Make sure your FPGA board is connected and powered on."
-	$(VIVADO) -mode batch -source scripts/program_fpga.tcl -tclargs $(BIT_FILE)
-
-program-fpga-simple: $(BIT_FILE)
 	@echo "Programming FPGA with $(BIT_FILE) (simple mode)..."
 	@echo "Make sure your FPGA board is connected and powered on."
-	$(VIVADO) -mode batch -source scripts/program_fpga_simple.tcl -tclargs $(BIT_FILE)
+	$(VIVADO) -nojournal -mode batch -source scripts/program_fpga_simple.tcl -tclargs $(BIT_FILE)
 
 program-fpga-gui: $(BIT_FILE)
 	@echo "Opening Vivado Hardware Manager GUI for manual programming..."
 	@echo "Bitstream file: $(BIT_FILE)"
-	$(VIVADO) -mode gui scripts/open_hw_manager.tcl
+	$(VIVADO) -nojournal -mode gui scripts/open_hw_manager.tcl
 
-list-hw-devices:
-	@echo "Detecting connected FPGA devices..."
-	$(VIVADO) -mode batch -source scripts/list_devices.tcl
-
-.PHONY: all clean program-fpga program-fpga-simple program-fpga-gui list-hw-devices
+.PHONY: all clean program-fpga program-fpga-gui

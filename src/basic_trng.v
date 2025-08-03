@@ -1,15 +1,13 @@
-`timescale 1ns / 1ps
 (*dont_touch = "true"*)
-module basic_trng(
-input iClk,
-input iRst,
-input iEntropyEn,
-input iEn,
-output oRandomBit
+module basic_trng#(
+    parameter integer FAST_RO_LENGTH = 5
+)(
+    input iClk, // Sample clock
+    input iRst,
+    input iEntropyEn,
+    input iEn,
+    output oRandomBit
 );
-// Ring oscillator parameters
-parameter integer FAST_RO_LENGTH = 5;
-
 // Fast ring oscillator
 (*dont_touch = "true"*) wire fast_osc;
 ring_oscillator #(.LENGTH(FAST_RO_LENGTH)) fast_ring_osc (
