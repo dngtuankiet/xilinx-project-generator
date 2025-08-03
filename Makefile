@@ -26,17 +26,28 @@ $(BIT_FILE): $(wildcard $(SRC_DIR)/*.*)
 		-ip-vivado-tcls "../scripts/boards/$(BOARD)/tcl/ip.tcl" \
 		-build-dir "." 2>&1 | tee vivado.log
 
-clean:
-	rm -rf $(BUILD_DIR)
+remove-vivado-logs:
+	@echo "Removing Vivado logs..."
+	rm -f *.vivado.log
+	rm -f vivado.log
+	rm -f *.backup.log
+	rm -f *.jou
+	rm -f *.str
 
-program-fpga: $(BIT_FILE)
+program-fpga: $(BIT_FILE) 
 	@echo "Programming FPGA with $(BIT_FILE) (simple mode)..."
 	@echo "Make sure your FPGA board is connected and powered on."
-	$(VIVADO) -nojournal -mode batch -source scripts/program_fpga.tcl -tclargs $(BIT_FILE)
+	$(VIVADO) -nojournal -mode batch -source "scripts/program_fpga.tcl" -tclargs $(BIT_FILE)
+	$(MAKE) remove-vivado-logs
 
 program-fpga-gui: $(BIT_FILE)
 	@echo "Opening Vivado Hardware Manager GUI for manual programming..."
 	@echo "Bitstream file: $(BIT_FILE)"
 	$(VIVADO) -nojournal -mode gui scripts/open_hw_manager.tcl
+	$(MAKE) remove-vivado-logs
+
+clean:
+	rm -rf $(BUILD_DIR)
+	$(MAKE) remove-vivado-logs
 
 .PHONY: all clean program-fpga program-fpga-gui
