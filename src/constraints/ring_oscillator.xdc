@@ -1,5 +1,5 @@
-set_property ALLOW_COMBINATORIAL_LOOPS TRUE [get_nets basic_trng_inst/fast_ring_osc/n[4]]
-set_property ALLOW_COMBINATORIAL_LOOPS TRUE [get_nets slow_ring_osc/n[50]]
+set_property ALLOW_COMBINATORIAL_LOOPS TRUE [get_nets basic_trng_inst/fast_ring_osc/n[1]]
+set_property ALLOW_COMBINATORIAL_LOOPS TRUE [get_nets slow_ring_osc/n[1]]
 
 # The slow_ring_osc output is used as a local clock, but its frequency is unknown and depends on the ring length and process/voltage/temperature.
 # We cannot specify a period constraint, but we can:
